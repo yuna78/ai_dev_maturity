@@ -153,7 +153,7 @@ def scan_repo(root, rp, prof, since, no_fetch, trend_months=0):
         m = re.match(r"^\s*([a-z]+)", subj.lower())
         if m: kinds[m.group(1)] += 1
         if re.search(r"revert|hotfix|rollback|回滚|紧急", subj, re.I): rev += 1
-    # ---- 按月分桶（J 曲线）：一次 git log 拿全，别按月循环调 N 次 ----
+    # ---- 按月分桶：一次 git log 拿全，别按月循环调 N 次 ----
     if trend_months:
         tb = {}
         traw = git(repo, "log", "--no-merges", f"--since={trend_months} months ago",
@@ -403,7 +403,7 @@ def print_compare(c):
 
 
 def aggregate_trend(repos):
-    """把各仓的月度桶并成一条全局曲线。指标含义见 references/measuring-roi.md。"""
+    """把各仓的月度桶并成一条全局曲线。指标含义与读法（尤其返工率没有及格线）见 references/measuring-roi.md。"""
     agg = {}
     for r in repos:
         for mon, b in (r.get("trend") or {}).items():
@@ -424,7 +424,7 @@ def main():
     ap.add_argument("--root", default="."); ap.add_argument("--profile"); ap.add_argument("--since"); ap.add_argument("--no-fetch", action="store_true")
     ap.add_argument("--detect-only", action="store_true"); ap.add_argument("--write-profile")
     ap.add_argument("--trend", type=int, default=0, metavar="N",
-                    help="额外按月分桶最近 N 个月，产出 J 曲线数据（建议 12）")
+                    help="额外按月分桶最近 N 个月，产出吞吐 / 返工的月度趋势（建议 12）")
     ap.add_argument("--compare", nargs=2, metavar=("OLD.json", "NEW.json"), help="对比两次 scan.json 并打印差异表")
     ap.add_argument("--manual", metavar="manual.json", help="人工核对项答案；文件不存在时写一份待填模板")
     a = ap.parse_args()

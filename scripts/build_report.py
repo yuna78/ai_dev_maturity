@@ -79,8 +79,10 @@ def grouped_bars_svg(c):
     P.append("</svg>"); return "\n".join(P)
 
 def line_svg(c):
-    """双轴折线：左轴计数（吞吐），右轴百分比（返工率 / AI 署名率），可标一条竖线（如 AI 采用起点）。
-    J 曲线要的就是「吞吐」与「返工」放同一张图上看，分两张图就看不出代价。"""
+    """双轴折线：左轴计数（吞吐），右轴百分比（返工率），可标一条竖线（如 AI 采用起点）。
+    吞吐与返工必须放同一张图，分开看就看不出「速度是用什么换来的」。
+    ⚠️ 不要把 AI 署名率也画上去：署名率只覆盖会写 trailer 的工具，真实使用上升时它可能反而下降，
+    与返工同轴会给出反向暗示（踩过）。采用时点用 marker 竖线标注即可。"""
     W, Hh, left, right, top, bot = 700, 260, 44, 44, 18, 42
     xs = c["x"]; n = len(xs)
     P = [f'<svg viewBox="0 0 {W} {Hh}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">']

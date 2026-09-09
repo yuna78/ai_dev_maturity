@@ -41,22 +41,21 @@ measurement — not the people.
 |---|---|
 | `scan.json` | ~40 metrics per repo: throughput, AI attribution, PR size, test ratio, CI gates, agent config, spec-layer health |
 | Markdown analysis | Evidence → 9-dimension score → three-wave plan, every item with a concrete landing point and an acceptance metric |
-| HTML + A4 PDF | Radar, J-curve, bars, donuts, roadmap. Print-ready, with automatic pagination self-check |
+| HTML + A4 PDF | Radar, trend lines, bars, donuts, roadmap. Print-ready, with automatic pagination self-check |
 | Baseline | Stored per project, so the next run diffs against it (`--compare`) |
 
 <div align="center">
 <img src="docs/images/report-evidence.png" width="720" alt="Evidence page with charts">
 </div>
 
-## The J-curve — the chart most teams are missing
+## One snapshot will lie to you
 
-DORA describes AI adoption as a J-curve: things get worse before they get better, and the dip is
-paid in **verification cost**. One 90-day snapshot cannot show you where you are on that curve.
-`--trend 12` buckets the same git history by month so you can see it.
+`--trend 12` buckets the same git history by month, so you can see throughput and rework move
+together instead of reading a single 90-day average.
 
 <div align="center">
-<img src="docs/images/jcurve.png" width="820" alt="J-curve chart: throughput vs rework">
-<br><sub><i>Illustrative, synthetic data.</i></sub>
+<img src="docs/images/trend.png" width="820" alt="Throughput vs rework over 13 months">
+<p><sub><i>Illustrative, synthetic data.</i></sub></p>
 </div>
 
 Read the two lines **together**: throughput up with rework flat is real gain; throughput up with
@@ -64,9 +63,25 @@ rework up means you are buying speed with rework, and the only question is how m
 survives.
 
 > **This is not hypothetical.** On the project this tool was first built for, the 90-day snapshot
-> said *"past the bottom of the J-curve."* The 14-month view said the opposite — rework in two
-> long-lived repos had gone from a 10–20% baseline to over 60%, in the same month. Same data,
-> opposite conclusion, purely because of window length.
+> supported an optimistic reading. The 14-month view said the opposite — rework in two long-lived
+> repos had gone from a 10–20% baseline to over 60%, both in the same month. Same data, opposite
+> conclusion, purely because of window length.
+
+**On the "J-curve".** DORA and the productivity-economics literature describe technology adoption
+as a J-curve — things get worse before they get better, and the dip is paid in verification cost.
+It is a useful **metaphor, not a standard**: there is no agreed measurement, no threshold, and no
+benchmark dataset for it. Do not report "we are on the upslope" as if it were a grade. If you want
+something standardised to compare against, that is **DORA's four keys** (deployment frequency, lead
+time, change failure rate, time to restore) — a decade of research and real benchmarks behind them.
+The value of the chart above is narrower and more reliable: **it stops a short window from fooling
+you.**
+
+**Rework has no pass mark.** `fix/(fix+feat)` is a *composition* ratio, not a quality score. A
+mature product in maintenance should be mostly fixes; a greenfield project mostly features; a team
+in a pre-release stabilisation push will spike, and that is the system working. The number is only
+meaningful **against your own history, with lifecycle held roughly constant** — and even then it is
+a prompt to go ask what happened, never a verdict. It also depends on commit-message discipline:
+check what share of commits are classifiable at all before trusting a trend.
 
 ## Quickstart
 
@@ -84,7 +99,7 @@ Then, from any git project:
 S=~/.claude/skills/ai-collab-maturity/scripts
 
 python3 $S/scan.py --root . --detect-only              # 1. sanity-check what it detected
-python3 $S/scan.py --root . --trend 12 > scan.json     # 2. scan (+ monthly J-curve data)
+python3 $S/scan.py --root . --trend 12 > scan.json     # 2. scan (+ monthly trend data)
 python3 $S/build_report.py report.json --out .         # 4. render HTML + PDF
 ```
 

@@ -8,7 +8,7 @@
     "baseline": "根仓 main、各码仓 origin/develop @ 2026-09-08（已 fetch）· openspec 台账 52 active + 205 archived（09-09 晨） · .claude/ 治理层 · doc 仓 ADR / review",
     "author": "评估人（Claude Code 协作）",
     "date": "2026-09-09",
-    "doc_id": "AS-TD-AI-COLLAB-MATURITY",
+    "doc_id": "EX-TD-AI-COLLAB-MATURITY",
     "layout": {"score_on_new_page": false}
   },
   "summary": {

@@ -1,0 +1,165 @@
+{
+ "name": "atlas-workspace",
+ "since": "90 days ago",
+ "repos": [
+  {
+   "path": ".",
+   "branch": "main",
+   "role": "root",
+   "skip": true
+  },
+  {
+   "path": "agentscope",
+   "branch": "main",
+   "skip": true
+  },
+  {
+   "path": "atlas-agent",
+   "branch": "main",
+   "skip": true
+  },
+  {
+   "path": "atlas-eval",
+   "branch": "main",
+   "skip": true
+  },
+  {
+   "path": "db-insight",
+   "branch": "master",
+   "skip": true
+  },
+  {
+   "path": "doc",
+   "branch": "main",
+   "skip": true
+  },
+  {
+   "path": "svc-sql-agent",
+   "branch": "master",
+   "skip": true
+  },
+  {
+   "path": "svc-sql-agent-web",
+   "branch": "master",
+   "skip": true
+  },
+  {
+   "path": "svc-flow",
+   "branch": "master",
+   "skip": true
+  },
+  {
+   "path": "svc-flow-backend",
+   "branch": "develop"
+  },
+  {
+   "path": "svc-flow-frontend",
+   "branch": "develop"
+  },
+  {
+   "path": "svc-meeting-agent",
+   "branch": "develop",
+   "skip": true
+  },
+  {
+   "path": "svc-search",
+   "branch": "master"
+  }
+ ],
+ "author_aliases": {
+  "Dev-A": [
+   "Dev-A",
+   "dev-a",
+   "dev-a@example.com"
+  ],
+  "Dev-B": [
+   "Dev-B",
+   "dev-b",
+   "dev-b@example.com"
+  ],
+  "Dev-C": [
+   "Dev-C",
+   "dev-c",
+   "dev-c@example.com"
+  ],
+  "Dev-D": [
+   "Dev-D",
+   "dev-d",
+   "dev-d@example.com"
+  ],
+  "Dev-E": [
+   "Dev-E",
+   "dev-e",
+   "dev-e@example.com"
+  ],
+  "Dev-F": [
+   "Dev-F",
+   "dev-f",
+   "dev-f@example.com"
+  ],
+  "Dev-G": [
+   "Dev-G",
+   "dev-g",
+   "dev-g@example.com"
+  ],
+  "Dev-H": [
+   "Dev-H",
+   "dev-h",
+   "dev-h@example.com"
+  ],
+  "Dev-I": [
+   "Dev-I",
+   "dev-i",
+   "dev-i@example.com"
+  ],
+  "Dev-J": [
+   "Dev-J",
+   "dev-j",
+   "dev-j@example.com"
+  ]
+ },
+ "merge_patterns": [
+  "auto"
+ ],
+ "squash_patterns": [
+  "auto"
+ ],
+ "ai_patterns": [],
+ "spec": {
+  "openspec": "openspec",
+  "speckit": null,
+  "adr_dirs": []
+ },
+ "exclude_dirs": [
+  "node_modules",
+  "vendor",
+  ".venv",
+  "venv",
+  "dist",
+  "build",
+  ".next",
+  "target",
+  "__pycache__",
+  ".git",
+  ".tmp",
+  "coverage"
+ ],
+ "src_extensions": [
+  ".py",
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".go",
+  ".java",
+  ".kt",
+  ".rs",
+  ".rb",
+  ".cs",
+  ".swift",
+  ".php",
+  ".scala",
+  ".vue"
+ ],
+ "_note": "多仓 workspace：根仓是治理层（openspec/.claude/doc），只评三个活跃码仓；退役仓 / 上游 fork / 调研克隆 skip；码仓主线 develop（Gitee，合并约定 Merge pull request !N）"
+}

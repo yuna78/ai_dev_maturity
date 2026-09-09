@@ -1,0 +1,156 @@
+{
+  "meta": {
+    "file_stem": "Atlas-AI协作开发成熟度评估与优化方案-20260909",
+    "kicker": "示例组织 · Atlas 项目 · 工程治理评估",
+    "title": "Atlas AI 协作开发成熟度评估与优化方案",
+    "title_html": "Atlas AI 协作开发<br>成熟度评估与优化方案",
+    "subtitle": "对照 Anthropic《2026 Agentic Coding 趋势报告》与近 6 个月权威范式，对本 workspace 的实测体检",
+    "baseline": "根仓 main、各码仓 origin/develop @ 2026-09-08（已 fetch）· openspec 台账 52 active + 205 archived（09-09 晨） · .claude/ 治理层 · doc 仓 ADR / review",
+    "author": "评估人（Claude Code 协作）",
+    "date": "2026-09-09",
+    "doc_id": "AS-TD-AI-COLLAB-MATURITY",
+    "layout": {"score_on_new_page": false}
+  },
+  "summary": {
+    "score": 3.3,
+    "level": "「L3 · Harness 化」后段",
+    "radar_now_label": "当前（3.3）",
+    "radar_target_label": "三个月目标（4.0）",
+    "conclusion_html": "约束层（hooks / 门禁 / worktree / OpenSpec）已达业界前沿；短板集中在<b>反馈闭环</b>（独立评审、验证留痕、变异测试）、<b>人类监督规模化</b>（写 / 验 / 合各集中在一人）与<b>度量</b>（没有一条数字能证明 AI 收益或返工率）。按 DORA 的说法，团队正走在 J 曲线上升沿：吞吐已经起来，但「验证税」还全压在一两个人身上。<br><br>下一阶段的主题不是「再加闸」，而是<b>把人从全量审查里解放出来，同时让系统自己证明质量</b>。"
+  },
+  "dims": [
+    {"name": "意图与规格", "now": 4.0, "target": 4.5, "basis": "OpenSpec 深度使用 + Gitee 铁律；但台账腐化"},
+    {"name": "上下文工程", "now": 3.5, "target": 4.0, "basis": "体系完整；但方向与 OpenAI「100 行地图」相反"},
+    {"name": "前馈约束", "now": 4.5, "target": 4.5, "basis": "hooks 是项目级最完整之一，且 Codex 同源（Radar 前馈控制）"},
+    {"name": "反馈验证", "now": 3.0, "target": 4.0, "basis": "CI 扎实；缺变异测试、独立评审、verification 硬门"},
+    {"name": "多 Agent 编排", "now": 2.5, "target": 3.5, "basis": "并行有、编排无"},
+    {"name": "人类监督", "now": 2.5, "target": 3.5, "basis": "风险分级只在一处；写 / 验 / 合各有单点"},
+    {"name": "度量经济账", "now": 2.0, "target": 3.5, "basis": "只有流程合规巡检"},
+    {"name": "安全前置", "now": 3.5, "target": 4.0, "basis": "数据侧硬、agent 侧软"},
+    {"name": "工程之外", "now": 3.5, "target": 4.0, "basis": "角色 skill 齐，但无使用度量"}
+  ],
+  "paradigms": {
+    "rows": [
+      ["Anthropic《2026 Agentic Coding 趋势报告》", "2026", "8 趋势 → 4 个优先事项：多 Agent 协同、监督规模化、推广到工程之外、安全前置。协作悖论：60% 工作用 AI，但完全委托只有 0–20%。"],
+      ["Anthropic《How AI is transforming work at Anthropic》", "2025-12", "内部 132 人调研：Claude 用于 59% 工作；合并 PR/人 +67%；27% 的 AI 工作是「本来不会做的事」；担忧是技能退化、同事互动减半。"],
+      ["DORA《ROI of AI-assisted Software Development》", "2026-04", "AI 是<b>放大器</b>不是修复器；J 曲线先降后升，降的根因是<b>验证税</b>；ROI 通过代码评审兑现；7 项能力含<b>小批量</b>、强版本控制、内部平台。"],
+      ["Thoughtworks Technology Radar Vol.34", "2026-04", "主题「认知债」：AI 产码快于人理解。控制手段分<b>前馈</b>（Agent Skills、Spec-driven）与<b>反馈</b>（变异测试、评审前自纠）。OpenSpec 列 Assess；警告：规则手工堆砌不可规模化。"],
+      ["OpenAI《Harness engineering》", "2026-02", "3 人 5 个月 1500 PR。AGENTS.md 约 100 行只做「地图」、docs/ 是 agent 知识库、用 linter/CI 强制架构而非靠 prompt、agent 定期做文档垃圾回收。"],
+      ["Microsoft 万人级 CLI Agent 推广研究（arXiv）", "2026-07", "采用者合并 PR +24%，无新鲜感衰减；<b>传播靠同伴可见使用</b>，不靠自上而下。"],
+      ["METR 2026 更新", "2026-02/04", "早期 2026「AI 大概率提升生产力」，个体差异 2x–10x；30–100 小时后才转正；<b>资深工程师从 agentic 工作流获益更大</b>。"],
+      ["Stack Overflow 开发者调查", "2025-07 / 2026-06", "采用率 84%，但「高度信任」仅 3%，资深者最不信任。信任缺口只能靠<b>可核查的验证</b>弥合。"]
+    ],
+    "framework_html": "<b>评估框架</b>：把上述共识揉成 9 个维度 —— ① 意图与规格 ② 上下文工程 ③ 前馈约束 ④ 反馈验证 ⑤ 多 Agent 编排 ⑥ 人类监督规模化 ⑦ 度量与经济账 ⑧ 安全前置 ⑨ 工程之外的扩散。打分口径：1 = 无 / 靠人记；3 = 有机制但靠自觉；5 = 确定性执行且有度量。"
+  },
+  "evidence": {
+    "window_label": "实测，近 90 天",
+    "governance_rows": [
+      ["意图 / 规格", "OpenSpec 205 archived / 52 active；intents/ 收件箱刚建（未提交）；ADR 11 条；14 份 claudereview", "39 个 active 超 30 天没动；22 个未绑 Gitee、8 个 PENDING；仅 10 个有 verification.md；1 个只有骨架"],
+      ["上下文工程", "根仓 CLAUDE.md 260 行 + AGENTS.md 279 行（基本重复）；42 个 skill 共 7,872 行；9 条 memory；doc 仓 15 条铁律", "<b>两个码仓 develop 上都没有 CLAUDE.md / AGENTS.md</b>；无 .claude/rules/ 分层；skill 与 CLAUDE.md 都在膨胀"],
+      ["前馈约束", "12 个 hook 挂 5 个事件：code-change-gate 双闸、pr-review-gate（review-policy.yaml，高危路径需 security_review + 2 finders）、pr-link-gate、merge-up-to-date-gate、lark-cli 防污染、术语黑名单；.codex/hooks 14 个同源", "Bash 改码不拦、网页建 / 合 PR 绕过、<b>Gitee 服务端未启用非作者审批</b>；全部 hook fail-open；review 哨兵可被同一 agent 自满足"],
+      ["反馈验证", "PR pipeline：lint + typecheck + gitleaks + test-cov（后端全局 78%）+ diff-cov（后端 85% / 前端 80%）+ build；e2e-pipeline Playwright；atlas-eval L1–L4 每日；Langfuse / LangSmith", "无变异测试；mypy 269 处存量只 ratchet；verification.md 覆盖低；评审是「自审」而非独立第二模型"],
+      ["多 Agent", "前端 8 + 后端 16 个 worktree 并行；Claude + Codex 双 agent；review 多 finder 子代理", "没有把 propose → 实现 → 测试 → 评审 → PR 串成 Workflow；CI 红无 agent 自修；跨仓 change 前后端手工串"],
+      ["人类监督", "review-policy 有风险分级；8 条前端红线；DH-4「视觉稿先过 Dev-A」", "Dev-A 写 40% commit + 合 31–38% PR + 全部验收，Dev-B 合 43–51% PR：写 / 验集中在 Dev-A，合集中在两人 = <b>单点</b>（Dev-A AI 署名率 57% / 77%，团队其他人 0–14%）；低风险 PR 也走同一条人审路径"],
+      ["度量", "atlas-openspec-tracker 每日合规巡检；atlas-governance-weekly", "<b>无 DORA 四指标、无 AI 归属看板、无返工率、无认知债指标</b>"],
+      ["安全", "gitleaks 本地 + CI 双层；LLM 出网合规 fail-loud；SQL select-only + 行级权限 fail-closed；MCP token 不入库", "agent 常跑 bypass-permissions；hook fail-open；无 agent 运行沙箱纪律"],
+      ["工程之外", "BA / PM / 解决方案 PM 角色 skill；报告、邮件、飞书发布 skill；Cowork 定时任务", "非工程角色实际使用量未知，无反馈通道"]
+    ],
+    "self_awareness_html": "<b>已有的自我认知</b>：harness 全景体检（2026-07-13）已指出「台账与代码脱节」「openspec 重影」「本地 checkout 落后」。两个月后前两条依然成立，39 个 stale change 就是脱节的量化。这说明<b>发现问题的机制有，收敛问题的机制没有</b>。"
+  },
+  "kpis": [
+    {"value": "1,713", "label": "两仓 commit（后端 909 / 前端 804）"},
+    {"value": "397", "label": "合并 PR（后端 213 / 前端 184）"},
+    {"value": "39 / 52", "label": "active change 超 30 天未动", "tone": "warn"},
+    {"value": "40–42%", "label": "Dev-A 单人非合并 commit 占比（两仓）", "tone": "warn"}
+  ],
+  "charts": {
+    "grouped_bars": [
+      {"title": "commit 构成：fix vs feat（非合并）", "groups": ["后端", "前端"], "series": [{"name": "fix", "values": [258, 286]}, {"name": "feat", "values": [180, 130]}], "colors": ["red", "navy"], "caption": "前端 fix 是 feat 的 2 倍，与「验收返工多在交互层」吻合"},
+      {"title": "AI 署名 commit（Co-Authored-By Claude）", "groups": ["后端", "前端"], "series": [{"name": "全部 commit", "values": [909, 804]}, {"name": "AI 署名", "values": [164, 238]}], "colors": ["grey", "orange"], "caption": "对全部 commit 18% / 30%，对非合并 commit 27% / 43%；Codex 无 trailer，Cursor 各 5–6 条"}
+    ],
+    "donuts": [
+      {"title": "openspec active change 健康度", "segments": [{"label": "超 30 天未动", "value": 39, "color": "red"}, {"label": "近期活跃", "value": 13, "color": "teal"}], "center": "52 active", "caption": "另有 22 个未绑 Gitee、8 个 PENDING，仅 10 个有 verification.md"},
+      {"title": "后端单 PR 平均体量（39 个样本）", "segments": [{"label": "实测均值 +1,241 行", "value": 1241, "color": "orange"}, {"label": "DORA 小批量 ≤ 400 行", "value": 400, "color": "teal"}], "center": "≈3×", "show_values": false, "caption": "PR 体量远超小批量建议，评审者审不完"}
+    ]
+  },
+  "scoring": {
+    "position_html": "<b>与业界对照的位置</b>：Atlas 在「约束」上领先大多数企业团队（多数还停在 CLAUDE.md + 靠自觉），在「验证与度量」上与行业中位数持平，在「编排与监督规模化」上落后 OpenAI / Anthropic 内部实践一代。"
+  },
+  "plan": {
+    "headline": "17 项，分三波",
+    "principles_html": "<b>原则</b>：先做减法再做加法（Radar 警告规则堆砌不可规模化）；每项必须有确定性落点（hook / CI / 脚本，不靠 prompt）；每项配一个可验证指标。",
+    "roadmap": {
+      "weeks": 13,
+      "caption": "三波 13 周路线图",
+      "waves": [
+        {"label": "第一波 · 止血", "start": 0, "end": 2, "color": "navy"},
+        {"label": "第二波 · 反馈闭环", "start": 2, "end": 8, "color": "orange"},
+        {"label": "第三波 · 度量与规模化", "start": 8, "end": 13, "color": "teal"}
+      ],
+      "items": [
+        {"label": "#1 码仓 CLAUDE.md", "start": 0, "end": 2, "color": "navy"},
+        {"label": "#2 根仓瘦身", "start": 0, "end": 2, "color": "navy"},
+        {"label": "#3 台账清扫", "start": 0, "end": 2, "color": "navy"},
+        {"label": "#4 服务端分支保护", "start": 0, "end": 2, "color": "navy"},
+        {"label": "#5 PR 体量硬门", "start": 1, "end": 3, "color": "navy"},
+        {"label": "#6 第二模型评审", "start": 2, "end": 6, "color": "orange"},
+        {"label": "#7 verification 硬门", "start": 2, "end": 4, "color": "orange"},
+        {"label": "#8 变异测试试点", "start": 3, "end": 8, "color": "orange"},
+        {"label": "#9 CI 红自修闭环", "start": 4, "end": 8, "color": "orange"},
+        {"label": "#10 前端红线制度化", "start": 3, "end": 6, "color": "orange"},
+        {"label": "#11 关键闸 fail-closed", "start": 2, "end": 4, "color": "orange"},
+        {"label": "#12 度量看板", "start": 6, "end": 12, "color": "teal"},
+        {"label": "#13 人类监督分层", "start": 6, "end": 10, "color": "teal"},
+        {"label": "#14 Workflow 编排", "start": 8, "end": 13, "color": "teal"},
+        {"label": "#15 文档 GC agent", "start": 9, "end": 13, "color": "teal"},
+        {"label": "#16 agent 安全纪律", "start": 7, "end": 10, "color": "teal"},
+        {"label": "#17 工程之外推广", "start": 8, "end": 13, "color": "teal"}
+      ]
+    },
+    "waves": [
+      {"title": "第一波 · 两周内止血（低成本、高杠杆）", "rows": [
+        ["1", "码仓各自加 ≤100 行 CLAUDE.md（AGENTS.md 软链）：仓库地图、跑测试命令、架构红线、指向 doc 的链接", "两个码仓 develop 上 0 行上下文；OpenAI 实证「地图式短文件」最有效", "两仓 CLAUDE.md 走 PR", "两仓 develop 存在且 ≤100 行"],
+        ["2", "根仓 CLAUDE.md 瘦身到约 120 行，长节移到 .claude/rules/*.md 按路径生效；AGENTS.md 软链", "260 + 279 行重复文件每次会话吃上下文，且两份会漂移", "根仓 meta 层直提", "≤130 行；两文件 diff = 0"],
+        ["3", "跑 atlas-openspec-sweep，39 个 stale change 三分：归档 / 冻结 / 关闭；30 个未绑或 PENDING 当天补绑；intents/ 与 sweep skill 入库", "台账腐化让 tracker 失去意义；根仓 3 个 untracked 目录本身就是纪律漏项", "根仓 openspec/、.claude/skills/", "active ≤ 20；stale = 0；未绑 = 0"],
+        ["4", "Gitee 服务端启用分支保护：develop「非作者至少 1 人审批」+「pr-pipeline 必过」", "hooks README 自认服务端未启用；网页建 / 合 PR 完全绕过本地闸", "Gitee 控制台（人操作）", "保护规则截图入 doc"],
+        ["5", "PR 体量硬门：非 docs、非生成文件 >600 行或 >20 文件 → 拒并提示拆分；[big-pr-ok] 逃生", "后端均值 1,241 行、前端 691 行，评审者审不完，验证税全在人身上", "pr-link-gate.mjs", "后端 PR 中位数 ≤ 400 行"]
+      ]},
+      {"title": "第二波 · 一到两个月，建反馈闭环", "rows": [
+        ["6", "独立第二模型评审：Claude 写的用 Codex 审，反之亦然；结论贴回 PR；哨兵改为必须由不同 reviewer_agent 签发", "DORA：ROI 通过评审兑现；当前哨兵可自满足；信任缺口只能靠可核查评审补", "atlas-pr + review-policy.yaml + pr-review-gate.mjs", "100% 门禁仓 PR 有第二模型评论"],
+        ["7", "verification.md 成为归档第 4 件套：缺失或结论非 PASS → 拒", "54 个 active 只 10 个有验证记录，「做完」与「验过」分不清", "openspec-archive-close-task.py", "归档 100% 带 verification.md"],
+        ["8", "变异测试试点：后端 chatbi/、data_permission/ 上 mutmut，前端 post_fetch 相关 Stryker；先报数不设门", "Radar 推荐变异测试作反馈控制；diff-cov 只证「跑过」不证「测得住」", "两仓 Makefile / package.json + 可选 CI 阶段", "高危模块 mutation score 基线入 doc"],
+        ["9", "CI 红 → agent 自修闭环：最多 3 轮读日志 → 修 → 推；不绿升级给人", "Anthropic 趋势 3 / 4：例行失败交系统", "Gitee Go webhook → Workflow / Cowork", "红 PR 人工介入率 −50%"],
+        ["10", "8 条前端红线制度化：进 review-policy 的 ui_finder + 100 条 mock 数据 fixture；命中 src/app/** 必跑", "前端 fix 是 feat 的 2 倍，返工每条消耗一轮真人验收", "review-policy.yaml + fixtures", "验收打回 / 前端 PR ≤ 0.2"],
+        ["11", "关键闸改 fail-closed：code-change-gate、pr-review-gate、merge-up-to-date-gate 脚本异常时拒", "12 个 hook 全 fail-open，一个 node 版本差异就让门禁静默失效", "三个 .mjs", "脚本抛错 → exit 2"]
+      ]},
+      {"title": "第三波 · 一个季度，度量与规模化", "rows": [
+        ["12", "AI 协作度量看板：DORA 四指标 + AI 归属率 + 返工率 + 认知债代理（无测试 AI commit 比例、单文件作者集中度）", "没有数字就无法回答「AI 让我们快了多少」；J 曲线要靠度量走出来", "scripts/metrics/ 读 Gitee API + git log，接治理周报", "每周一自动出表"],
+        ["13", "人类监督分层：低危（docs / 测试 / 样式）第二模型评审 + 任一人 approve；中危 Dev-D 或 Dev-B；高危（数据权限、SQL、auth、hooks）Dev-A 必审", "Anthropic 趋势 4「只审要紧的」；解除 Dev-A 写 / 验、Dev-A 与Dev-B 合的集中", "review-policy.yaml tiers + CODEOWNERS", "单人合并占比 ≤ 40%；Dev-A 验收占比 ≤ 30%"],
+        ["14", "端到端 Workflow：propose → 建任务 → worktree → 实现 → 测试 → 第二模型评审 → atlas-pr；跨仓前后端两 agent 并行", "Anthropic 趋势 2；OpenAI 3.5 PR/人/日的前提是编排", ".claude/workflows/feature-loop.js", "一条 change 单次命令跑通"],
+        ["15", "文档「垃圾回收」agent：每周扫 doc + openspec 找过时点、失效链接、TBD、与 develop 不一致处，产出一个 PR", "OpenAI 用 agent 做 entropy 管理；panorama 两月前的过时点至今未收敛", "Cowork 定时 + atlas-kb-maintain", "每周 1 个 GC PR；TBD = 0"],
+        ["16", "agent 运行安全纪律：明确 bypass-permissions 只用于只读调研；MCP token 季度轮换；高危 PR 自动跑 security-review", "Anthropic 趋势 8；Radar「permission-hungry agents」", ".claude/rules/agent-safety.md + hook", "高危 PR 100% 带 security-review"],
+        ["17", "工程之外的采用度量与推广：角色 skill 加调用埋点进周报；每两周 15 分钟「我用 AI 做了什么」同伴演示", "Microsoft 实证同伴可见使用是传播主因；非工程使用量是黑箱", "atlas-governance-weekly", "非工程 skill 周调用数可见且上升"]
+      ]}
+    ],
+    "not_doing": [
+      "<b>不再增加 hook / skill 数量</b>，第一波先做减法。42 个 skill / 7,872 行已是维护负担。",
+      "<b>不引入第二套 SDD 工具</b>（Spec Kit / Kiro）。先把 OpenSpec 台账治好。",
+      "<b>不追求全自动合并</b>。Anthropic 内部也只能完全委托 0–20%；药企数据项目高危路径永远留人。"
+    ],
+    "targets": [["反馈验证", 3.0, 4.0], ["人类监督", 2.5, 3.5], ["度量经济账", 2.0, 3.5], ["<b>总分</b>", 3.3, 4.0]]
+  },
+  "sources": [
+    ["Anthropic · 2026 Agentic Coding Trends Report", "resources.anthropic.com/2026-agentic-coding-trends-report"],
+    ["Anthropic · How AI is transforming work at Anthropic (2025-12-02)", "anthropic.com/research/how-ai-is-transforming-work-at-anthropic"],
+    ["DORA · ROI of AI-assisted Software Development (2026-04-22)", "dora.dev/ai/roi/report/"],
+    ["InfoQ · DORA 报告解读 (2026-05)", "infoq.com/news/2026/05/dora-roi-ai-assisted-dev-report/"],
+    ["Thoughtworks · Technology Radar Vol.34 (2026-04)", "thoughtworks.com/about-us/news/2026/combat-ai-cognitive-debt-radar-v34"],
+    ["Thoughtworks · OpenSpec blip / Spec-driven development blip", "thoughtworks.com/en-us/radar/tools/openspec"],
+    ["OpenAI · Harness engineering (2026-02)", "openai.com/index/harness-engineering/"],
+    ["Microsoft · CLI coding agent rollout study, arXiv 2607.01418 (2026-07)", "arxiv.org/abs/2607.01418"],
+    ["METR · Developer productivity 2026 update (2026-02-24)", "metr.org/blog/2026-02-24-uplift-update/"],
+    ["Stack Overflow · Closing the developer AI trust gap (2026-02-18)", "stackoverflow.blog/2026/02/18/closing-the-developer-ai-trust-gap/"],
+    ["Claude Code · Best practices", "code.claude.com/docs/en/best-practices"]
+  ],
+  "footnote": "本报告 markdown 事实源：atlas-ai-collab-maturity-review-20260909.md。数据统计口径：git log --since='90 days ago' origin/develop；AI 署名按 commit body 含 Co-Authored-By / Generated with 计（trailer 下限）；PR 合并按 subject 或 body 含 Merge pull request 计（Gitee 两种格式都算）。"
+}

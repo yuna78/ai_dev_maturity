@@ -18,9 +18,14 @@
 
 ---
 
-A [Claude Code](https://claude.com/claude-code) skill that reads your git history and agent
-configuration, scores your team on **9 dimensions** against published industry research, and
-produces a shareable PDF report with a concrete, landable improvement plan.
+Reads your git history and agent configuration, scores your team on **9 dimensions** against
+published industry research, and produces a shareable PDF report with a concrete, landable
+improvement plan.
+
+**Works with any coding agent** — Codex, Cursor, Copilot, Gemini CLI, Cline, Amp, Claude Code.
+Scanning and rendering are pure Python (stdlib only) and **call no model API**; the scoring step is
+done by whichever agent you already use. Cross-tool entry point: [`AGENTS.md`](AGENTS.md); Claude
+Code users read [`SKILL.md`](SKILL.md) (same content).
 
 Works on **any git project** — single repo or multi-repo workspace; GitHub, GitLab, Gitee, CODING
 or Bitbucket. No CI integration required, nothing uploaded anywhere: it reads your local clone.
@@ -85,13 +90,18 @@ check what share of commits are classifiable at all before trusting a trend.
 
 ## Quickstart
 
+Clone it anywhere:
+
 ```bash
-git clone https://github.com/yuna78/ai_dev_maturity ~/.claude/skills/ai-collab-maturity
+git clone https://github.com/yuna78/ai_dev_maturity
 python3 -m playwright install chromium     # only needed for PDF rendering
 ```
 
-> The clone target directory name (`ai-collab-maturity`) is the skill name Claude Code looks for —
-> keep it, even though the repo is named `ai_dev_maturity`.
+> **Claude Code users**: to have it auto-discovered, clone to `~/.claude/skills/ai-collab-maturity`
+> — that directory name is what Claude Code looks for, even though the repo is named `ai_dev_maturity`.
+> **Any other agent**: no specific path needed — point it at the repo and have it read [`AGENTS.md`](AGENTS.md).
+>
+> Easiest install: **hand the repo URL to whatever coding agent you already use and say "install this skill".**
 
 Then, from any git project:
 
@@ -112,7 +122,9 @@ python3 $S/scan.py --root . --trend 12 > scan.json
 python3 $S/build_report.py report.json --out .
 ```
 
-Step 3 — turning `scan.json` into judgement — is what the skill file is for; no script can do it for you.
+Step 3 — turning `scan.json` into judgement — is the agent's job, not something a script can do for you.
+Open the project and ask your agent to *assess our AI collaboration maturity*; it reads `AGENTS.md` /
+`SKILL.md` and walks through scoring against the rubric.
 
 ### Pre-scan self-check
 

@@ -18,8 +18,12 @@
 
 ---
 
-一个 [Claude Code](https://claude.com/claude-code) skill：扫描 git 历史与 agent 配置，对照公开的
-行业研究按 **9 个维度**打分，产出一份能发给团队的 PDF 报告和一套落得下去的优化方案。
+扫描 git 历史与 agent 配置，对照公开的行业研究按 **9 个维度**打分，产出一份能发给团队的
+PDF 报告和一套落得下去的优化方案。
+
+**任何编码 agent 都能用**——Codex / Cursor / Copilot / Gemini CLI / Cline / Amp / Claude Code 皆可。
+扫描与渲染是纯 Python（只用标准库），**不调用任何模型 API**；打分那一步由你手边的 agent 照量表完成。
+跨工具入口见 [`AGENTS.md`](AGENTS.md)，Claude Code 用户读 [`SKILL.md`](SKILL.md)（内容一致）。
 
 **任何 git 项目都能跑**——单仓或多仓 workspace，GitHub / GitLab / Gitee / CODING / Bitbucket
 都支持。不需要接 CI，不上传任何东西，只读你本地的 clone。
@@ -77,13 +81,18 @@
 
 ## 快速上手
 
+clone 到哪里都行：
+
 ```bash
-git clone https://github.com/yuna78/ai_dev_maturity ~/.claude/skills/ai-collab-maturity
+git clone https://github.com/yuna78/ai_dev_maturity
 python3 -m playwright install chromium     # 只有出 PDF 才需要
 ```
 
-> clone 的目标目录名要用 `ai-collab-maturity`（Claude Code 认的 skill 名），仓名叫
-> `ai_dev_maturity` 不影响。
+> **Claude Code 用户**想让它被自动发现，clone 成 `~/.claude/skills/ai-collab-maturity`
+> （目录名要用这个，仓名叫 `ai_dev_maturity` 不影响）。
+> **其它 agent** 不需要特定路径——把仓库路径丢给它，让它读 [`AGENTS.md`](AGENTS.md)。
+>
+> 最省事的装法：**把仓库地址发给你手边任何一个编码 agent，说「帮我装上这个 skill」。**
 
 然后在任意 git 项目里：
 
@@ -103,7 +112,9 @@ python3 $S/scan.py --root . --trend 12 > scan.json
 python3 $S/build_report.py report.json --out .
 ```
 
-第 3 步——把 `scan.json` 变成判断——是 skill 文件的活，不是脚本能替你做的。
+第 3 步——把 `scan.json` 变成判断——是 agent 的活，不是脚本能替你做的：
+把项目打开，跟你的 agent 说一句「**评估一下我们的 AI 协作成熟度**」，它会读 `AGENTS.md` /
+`SKILL.md`，按量表逐维打分并起草报告。
 
 ### 扫描前自检
 

@@ -6,7 +6,7 @@
 
 [![selftest](https://github.com/yuna78/ai_dev_maturity/actions/workflows/selftest.yml/badge.svg)](https://github.com/yuna78/ai_dev_maturity/actions/workflows/selftest.yml) [![License](https://img.shields.io/github/license/yuna78/ai_dev_maturity?color=E8762B)](LICENSE) [![Python](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/) [![Claude Code](https://img.shields.io/badge/Claude%20Code-skill-D97757)](https://claude.com/claude-code) [![Stars](https://img.shields.io/github/stars/yuna78/ai_dev_maturity?style=flat&color=E9A03B)](https://github.com/yuna78/ai_dev_maturity/stargazers)
 
-![platforms](https://img.shields.io/badge/git-GitHub%20|%20GitLab%20|%20Gitee%20|%20CODING%20|%20Bitbucket-1F3A5F) ![assertions](https://img.shields.io/badge/selftest-28%20assertions-2A9D8F) ![deps](https://img.shields.io/badge/runtime%20deps-git%20%2B%20python3-lightgrey) ![offline](https://img.shields.io/badge/data-stays%20local-2A9D8F)
+![platforms](https://img.shields.io/badge/git-GitHub%20|%20GitLab%20|%20Gitee%20|%20CODING%20|%20Bitbucket-1F3A5F) ![assertions](https://img.shields.io/badge/selftest-36%20assertions-2A9D8F) ![deps](https://img.shields.io/badge/runtime%20deps-git%20%2B%20python3-lightgrey) ![offline](https://img.shields.io/badge/data-stays%20local-2A9D8F)
 
 [English](README.md) · **简体中文**
 
@@ -90,13 +90,42 @@ python3 -m playwright install chromium     # 只有出 PDF 才需要
 ```bash
 S=~/.claude/skills/ai-collab-maturity/scripts
 
-python3 $S/scan.py --root . --detect-only              # 1. 先看识别对不对
-python3 $S/scan.py --root . --trend 12 > scan.json     # 2. 扫描（含月度趋势数据）
-python3 $S/build_report.py report.json --out .         # 4. 出 HTML + PDF
+# 1. 先看识别对不对（分支、合并约定）
+python3 $S/scan.py --root . --detect-only
+
+# 2. 扫描（含月度趋势数据）。自检警告走 stderr，不会污染 scan.json
+python3 $S/scan.py --root . --trend 12 > scan.json
+
+# 3. 打分与写报告：在 Claude Code 里说「评估一下我们的 AI 协作成熟度」，
+#    skill 会读 scan.json，按量表逐维打分，写出 report.json
+
+# 4. 出 HTML + PDF（report.json 来自上一步）
+python3 $S/build_report.py report.json --out .
 ```
 
-第 3 步——把 `scan.json` 变成判断——是 skill 文件的活。在 Claude Code 里打开项目说
-「评估一下我们的 AI 协作成熟度」，它会按量表逐维打分并起草报告。
+第 3 步——把 `scan.json` 变成判断——是 skill 文件的活，不是脚本能替你做的。
+
+### 扫描前自检
+
+`scan.py` 每次都会检查几件最容易让报告失真的事，命中就打到 **stderr**（所以 `> scan.json` 时你照样看得见），
+同时写进 `scan.json` 的 `warnings[]` 和每个 `repos[].warnings`：
+
+| code | 什么情况 | 为什么要紧 |
+|---|---|---|
+| `stale_remote` | `origin/<主线>` 最新提交超过 30 天 | 远端没动，多半是你忘了 `git fetch` / `git push` |
+| `unpushed` | 本地 HEAD 领先 `origin/<主线>` | 这些提交不在扫描范围内，吞吐和署名率会偏低 |
+| `empty_window` | 窗口内 0 提交，但分支本身有提交 | 所有吞吐指标会是 0 —— 分支选错或窗口太窄 |
+| `guessed_branch` | `origin/HEAD` 没指向被选中的主线 | 主线是按活跃度猜的，可能猜错 |
+| `no_remote` | 没有 `origin/<主线>`，扫的是本地分支 | 口径跟走评审的远端主线不同 |
+
+**为什么这件事值得一张表**：上面任何一种情况，`scan.py` 都会输出一份**结构完全正常、数字全是 0** 的
+`scan.json`。不给警告的话，下游按它打分会得出「这个团队没在用 AI」，而报告排版精美、看不出任何异常。
+
+给 CI 或谨慎用户：`--strict` 在存在 `error` 级警告时退出码 1。
+
+```bash
+python3 $S/scan.py --root . --strict > scan.json
+```
 
 季度对比：
 
@@ -153,7 +182,7 @@ Microsoft CLI Agent 推广研究、Stack Overflow 开发者调查——摘要在
 ## 开发
 
 ```bash
-python3 scripts/selftest.py -v    # 28 条断言，覆盖 5 种 git 平台
+python3 scripts/selftest.py -v    # 36 条断言，覆盖 5 种 git 平台
 ```
 
 改了任何识别规则后必跑。它会造临时仓，分别用 GitHub / GitLab / Gitee / CODING / Bitbucket

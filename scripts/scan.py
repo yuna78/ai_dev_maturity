@@ -62,6 +62,44 @@ def detect_branch(repo, since="90 days ago"):
     src = "origin/HEAD" if best == head else f"most active in window ({counts[best]} commits; origin/HEAD→{head} has {counts.get(head, 0)})"
     return best, src
 
+def branch_warnings(repo, branch, since, branch_source=""):
+    """扫描前的自检：远端陈旧 / 有未推送提交 / 窗口内没提交 / 分支靠猜。
+    这些情况下 scan 依然会输出一份"看起来正常"的全 0 报告，必须让下游知道。"""
+    warns, ref = [], ref_for(repo, branch)
+    scans_remote = ref.startswith("origin/")
+    now = time.time()
+
+    if not scans_remote:
+        warns.append({"code": "no_remote", "level": "info", "branch": branch,
+                      "message": f"没有 origin/{branch}，扫的是本地分支 {branch}",
+                      "hint": "本地分支可能含未推送/未评审的提交，跟走评审流程的远端主线口径不同"})
+    else:
+        ts = git(repo, "log", "-1", "--format=%ct", ref).strip()
+        if ts.isdigit():
+            days = int((now - int(ts)) / 86400)
+            if days > 30:
+                warns.append({"code": "stale_remote", "level": "error", "branch": branch,
+                              "message": f"{ref} 的最新提交是 {days} 天前",
+                              "hint": "远端主线长期没动。先 git fetch；如果是本地没 push，这份报告不反映真实情况"})
+        ahead = git(repo, "rev-list", "--count", f"{ref}..HEAD").strip()
+        if ahead.isdigit() and int(ahead) > 0:
+            warns.append({"code": "unpushed", "level": "error", "branch": branch,
+                          "message": f"本地 HEAD 比 {ref} 领先 {ahead} 个提交",
+                          "hint": "这些提交不在扫描范围内。push 之后重扫，否则吞吐/署名率全部偏低"})
+
+    in_window = git(repo, "rev-list", "--count", f"--since={since}", ref).strip()
+    total = git(repo, "rev-list", "--count", ref).strip()
+    if in_window == "0" and total.isdigit() and int(total) > 0:
+        warns.append({"code": "empty_window", "level": "error", "branch": branch,
+                      "message": f"{ref} 在「{since}」窗口内 0 个提交（该分支共 {total} 个）",
+                      "hint": "所有吞吐类指标都会是 0。确认分支选对了、或用 --since 放宽窗口"})
+
+    if branch_source and branch_source.startswith("most active"):
+        warns.append({"code": "guessed_branch", "level": "warn", "branch": branch,
+                      "message": f"主线是猜的：{branch_source}",
+                      "hint": "origin/HEAD 没指向它。分支不对就换 --profile 里的 branch 字段"})
+    return warns
+
 def ref_for(repo, branch):
     if git(repo, "rev-parse", "--verify", "-q", f"origin/{branch}").strip(): return f"origin/{branch}"
     return branch
@@ -423,6 +461,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="."); ap.add_argument("--profile"); ap.add_argument("--since"); ap.add_argument("--no-fetch", action="store_true")
     ap.add_argument("--detect-only", action="store_true"); ap.add_argument("--write-profile")
+    ap.add_argument("--strict", action="store_true", help="有 error 级自检警告时退出码 1（给 CI / 谨慎用户）")
     ap.add_argument("--trend", type=int, default=0, metavar="N",
                     help="额外按月分桶最近 N 个月，产出吞吐 / 返工的月度趋势（建议 12）")
     ap.add_argument("--compare", nargs=2, metavar=("OLD.json", "NEW.json"), help="对比两次 scan.json 并打印差异表")
@@ -449,15 +488,37 @@ def main():
     if a.detect_only or a.write_profile:
         print(json.dumps({"root": str(root), "repos": prof["repos"], "spec": prof["spec"], "root_agent_files": scan_root(root)["agent_files"]}, ensure_ascii=False, indent=1))
         return
+    scanned = [rp for rp in prof["repos"] if not rp.get("skip")]
+    repos_out = [scan_repo(root, rp, prof, since, a.no_fetch, a.trend) for rp in scanned]
+    all_warns = []
+    for rp, ro in zip(scanned, repos_out):
+        rdir = root / rp["path"]
+        if not (rdir / ".git").exists(): continue
+        w = branch_warnings(rdir, rp.get("branch") or "HEAD", since, rp.get("_branch_source", ""))
+        for x in w: x["repo"] = ro.get("repo") or rp["path"]
+        ro["warnings"] = w
+        all_warns += w
     result = {
-        "generated_at": time.strftime("%Y-%m-%d %H:%M"), "root": str(root), "name": prof.get("name", root.name), "since": since,
-        "repos": [scan_repo(root, rp, prof, since, a.no_fetch, a.trend) for rp in prof["repos"] if not rp.get("skip")],
+        "generated_at": time.strftime("%Y-%m-%d %H:%M"), "name": prof.get("name", root.name), "since": since,
+        "warnings": all_warns,
+        "repos": repos_out,
         "root": scan_root(root), "spec": scan_spec(root, prof["spec"]),
         "manual_checks": load_manual(a.manual),
     }
     if a.trend: result["trend"] = aggregate_trend(result["repos"])
     result["root_path"] = str(root)
+    if all_warns:
+        # 走 stderr：stdout 被重定向进 scan.json 时人依然看得见，且不污染 JSON
+        print("\n\u26a0\ufe0f  \u626b\u63cf\u524d\u81ea\u68c0\u53d1\u73b0 %d \u4e2a\u95ee\u9898\uff1a" % len(all_warns), file=sys.stderr)
+        for w in all_warns:
+            tag = {"error": "\u274c", "warn": "\u26a0\ufe0f ", "info": "\u2139\ufe0f "}.get(w["level"], "-")
+            print("  %s [%s] %s" % (tag, w["repo"], w["message"]), file=sys.stderr)
+            print("       \u2192 %s" % w["hint"], file=sys.stderr)
+        print("", file=sys.stderr)
     print(json.dumps(result, ensure_ascii=False, indent=1))
+    if a.strict and any(w["level"] == "error" for w in all_warns):
+        print("--strict\uff1a\u5b58\u5728 error \u7ea7\u8b66\u544a\uff0c\u4e0d\u8981\u62ff\u8fd9\u4efd scan.json \u53bb\u6253\u5206\u3002", file=sys.stderr)
+        return 1
 
 if __name__ == "__main__":
     sys.exit(main() or 0)

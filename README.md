@@ -6,7 +6,7 @@
 
 [![selftest](https://github.com/yuna78/ai_dev_maturity/actions/workflows/selftest.yml/badge.svg)](https://github.com/yuna78/ai_dev_maturity/actions/workflows/selftest.yml) [![License](https://img.shields.io/github/license/yuna78/ai_dev_maturity?color=E8762B)](LICENSE) [![Python](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/) [![Claude Code](https://img.shields.io/badge/Claude%20Code-skill-D97757)](https://claude.com/claude-code) [![Stars](https://img.shields.io/github/stars/yuna78/ai_dev_maturity?style=flat&color=E9A03B)](https://github.com/yuna78/ai_dev_maturity/stargazers)
 
-![platforms](https://img.shields.io/badge/git-GitHub%20|%20GitLab%20|%20Gitee%20|%20CODING%20|%20Bitbucket-1F3A5F) ![assertions](https://img.shields.io/badge/selftest-28%20assertions-2A9D8F) ![deps](https://img.shields.io/badge/runtime%20deps-git%20%2B%20python3-lightgrey) ![offline](https://img.shields.io/badge/data-stays%20local-2A9D8F)
+![platforms](https://img.shields.io/badge/git-GitHub%20|%20GitLab%20|%20Gitee%20|%20CODING%20|%20Bitbucket-1F3A5F) ![assertions](https://img.shields.io/badge/selftest-36%20assertions-2A9D8F) ![deps](https://img.shields.io/badge/runtime%20deps-git%20%2B%20python3-lightgrey) ![offline](https://img.shields.io/badge/data-stays%20local-2A9D8F)
 
 **English** · [简体中文](README.zh-CN.md)
 
@@ -98,14 +98,45 @@ Then, from any git project:
 ```bash
 S=~/.claude/skills/ai-collab-maturity/scripts
 
-python3 $S/scan.py --root . --detect-only              # 1. sanity-check what it detected
-python3 $S/scan.py --root . --trend 12 > scan.json     # 2. scan (+ monthly trend data)
-python3 $S/build_report.py report.json --out .         # 4. render HTML + PDF
+# 1. Sanity-check what it detected (branch, merge convention)
+python3 $S/scan.py --root . --detect-only
+
+# 2. Scan (+ monthly trend data). Self-check warnings go to stderr, so they
+#    stay visible and never contaminate scan.json
+python3 $S/scan.py --root . --trend 12 > scan.json
+
+# 3. Score and write up: in Claude Code, ask it to "assess our AI collaboration
+#    maturity". The skill reads scan.json, scores each dimension, writes report.json
+
+# 4. Render HTML + PDF (report.json comes from step 3)
+python3 $S/build_report.py report.json --out .
 ```
 
-Step 3 — turning `scan.json` into judgement — is what the skill file is for. Open the project in
-Claude Code and ask it to *assess our AI collaboration maturity*; the skill walks the model through
-scoring against the rubric and drafting the report.
+Step 3 — turning `scan.json` into judgement — is what the skill file is for; no script can do it for you.
+
+### Pre-scan self-check
+
+Every run checks the handful of things most likely to make a report silently wrong. Hits go to
+**stderr** (so they stay visible when stdout is redirected) and into `scan.json` as `warnings[]`
+plus a per-repo `repos[].warnings`:
+
+| code | Condition | Why it matters |
+|---|---|---|
+| `stale_remote` | `origin/<branch>` HEAD older than 30 days | Remote hasn't moved — usually a missing `git fetch` / `git push` |
+| `unpushed` | Local HEAD ahead of `origin/<branch>` | Those commits are outside the scan; throughput and AI attribution read low |
+| `empty_window` | Zero commits in window, but the branch has commits | Every throughput metric will be 0 — wrong branch or too narrow a window |
+| `guessed_branch` | `origin/HEAD` doesn't point at the chosen branch | The mainline was guessed by activity and may be wrong |
+| `no_remote` | No `origin/<branch>`; scanning a local branch | Different basis than a reviewed remote mainline |
+
+**Why this deserves a table**: in any of these cases `scan.py` still emits a perfectly
+well-formed `scan.json` in which **every number is zero**. Without the warnings, anything
+downstream scores it as "this team doesn't use AI" — on a report that looks immaculate.
+
+For CI or the cautious: `--strict` exits 1 when any `error`-level warning fires.
+
+```bash
+python3 $S/scan.py --root . --strict > scan.json
+```
 
 Comparing quarters:
 
@@ -169,7 +200,7 @@ except the optional Chromium download for PDF rendering.
 ## Development
 
 ```bash
-python3 scripts/selftest.py -v    # 28 assertions across 5 git platforms
+python3 scripts/selftest.py -v    # 36 assertions across 5 git platforms
 ```
 
 Run it after touching any detection rule. It builds throwaway repos with GitHub / GitLab / Gitee /

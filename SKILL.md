@@ -52,7 +52,21 @@ python3 ~/.claude/skills/ai-collab-maturity/scripts/scan.py --root . --profile .
 按作者与按工具的 AI 署名率、PR 平均体量、测试文件比、CI 门禁文件、agent 配置文件与行数；根目录 hooks（按事件计数）、skills、rules；
 规格层 active / stale / 未关联任务 / verification 覆盖。
 
-跑完先做三件事：
+跑完先做四件事：
+
+- **先看 `warnings[]`——非空就停下来问人，不许直接进入打分。** 这是硬规矩。
+  `scan.py` 每次会自检五件事：`stale_remote`（远端主线超 30 天没动）、`unpushed`（本地 HEAD 领先远端）、
+  `empty_window`（窗口内 0 提交）、`guessed_branch`（主线是猜的，`origin/HEAD` 没指向它）、`no_remote`。
+  命中任何一条，`scan.json` 里的吞吐、署名率、作者分布**会全是 0 或严重偏低，但 JSON 结构完全正常、看不出异常**。
+  拿这种 scan.json 打分，会得出「这个团队没在用 AI」的结论，而报告排版精美，用户没有任何理由怀疑它。
+
+  **正确做法**：把警告原文念给用户，然后按类型确认——
+  - `unpushed` / `stale_remote` → 问：「要不要先 `git fetch` / `git push` 再重扫？还是就按远端主线的口径评？」
+  - `guessed_branch` → 问：「主线是不是 `<branch>`？不是的话告诉我正确的，我写进 profile。」
+  - `empty_window` → 问：「这个窗口内确实没提交，还是要放宽 `--since`？」
+  - `no_remote` → 告知：扫的是本地分支，口径跟走评审的远端主线不同。
+
+  用户明确说「就这么评」再继续，并且**必须把这条口径写进报告开头的「基线」一栏**，让读报告的人知道数字是在什么前提下得出的。
 
 - **核对异常值**。作者名分裂、merged_prs 为 0（合并约定没识别出来）、AI 署名率异常低（团队用的工具不留 trailer），都先查 playbook「数字对不上时」一节。
   三个**必看**的自检字段：`spec.time_source_warning`（出现就说明 stale 数字取自 mtime，不可信）、

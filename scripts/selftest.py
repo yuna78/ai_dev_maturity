@@ -202,6 +202,31 @@ def main():
         check("测试文件识别", R["gh"]["test_files"], 1)
         check("agent 文件识别", R["gh"]["agent_files"], ["AGENTS.md"])
 
+        # --- 扫描前自检 warnings ---
+        # 健康仓（push 过、窗口内有提交）不许误报，否则警告会变成噪音、没人再看
+        codes = lambda name: sorted(w["code"] for w in R[name].get("warnings", []))
+        check("warnings 字段存在", isinstance(d.get("warnings"), list), True)
+        check("健康仓零误报", codes("gh"), [])
+
+        # 造一个「本地领先远端」的仓：这正是让报告静默全 0 的那种情况
+        ahead = root / "ahead"
+        mkrepo(ahead); commit(ahead, "feat: pushed")
+        fake_origin(ahead, "main")
+        commit(ahead, "feat: not pushed yet")
+        out2 = subprocess.run([sys.executable, str(HERE / "scan.py"), "--root", str(ahead), "--no-fetch"],
+                              capture_output=True, text=True)
+        d2 = json.loads(out2.stdout)
+        w2 = sorted(w["code"] for w in d2["warnings"])
+        check("未推送提交被抓到", "unpushed" in w2, True)
+        check("warnings 同时写进 repos[]", len(d2["repos"][0].get("warnings", [])) > 0, True)
+        check("警告走 stderr（不污染 stdout）", "unpushed" in out2.stderr or "\u672a\u63a8\u9001" in out2.stderr or out2.stderr.strip() != "", True)
+        check("默认不改退出码", out2.returncode, 0)
+
+        out3 = subprocess.run([sys.executable, str(HERE / "scan.py"), "--root", str(ahead), "--no-fetch", "--strict"],
+                              capture_output=True, text=True)
+        check("--strict 有 error 就退 1", out3.returncode, 1)
+        check("--strict 仍然输出完整 JSON", isinstance(json.loads(out3.stdout).get("repos"), list), True)
+
         for n, ok, got, want in CASES:
             if verbose or not ok:
                 print(f"  {'PASS' if ok else 'FAIL'}  {n}" + ("" if ok else f"   got={got!r} want={want!r}"))
